@@ -7,7 +7,10 @@
 <title>Mis Cuentas</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mis Cuentas">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
@@ -24,6 +27,47 @@ h1{font-size:20px;margin:0}
 nav{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto}
 nav button{flex:1;min-width:max-content;border:1px solid var(--line);background:var(--card);color:var(--muted);padding:9px 12px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer}
 nav button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+nav .ic{margin-right:6px}
+html,body{overflow-x:hidden}
+input,select,textarea{font-size:16px}
+@media(max-width:640px){
+  .wrap{padding:max(12px,env(safe-area-inset-top)) 12px calc(96px + env(safe-area-inset-bottom))}
+  header{margin-bottom:10px;gap:8px}
+  header>div:first-child{width:100%;justify-content:space-between}
+  h1{font-size:19px}
+  .month{width:100%;justify-content:space-between}
+  .month span{flex:1;min-width:0;font-size:15px}
+  .month button{width:40px;height:38px}
+  nav#tabs{position:fixed;left:0;right:0;bottom:0;z-index:8;margin:0;gap:0;overflow:visible;
+    background:var(--card);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+    box-shadow:0 -4px 16px rgba(0,0,0,.12)}
+  nav#tabs button{flex:1;min-width:0;border:0;background:transparent;border-radius:10px;padding:4px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;color:var(--muted)}
+  nav#tabs .ic{margin:0;font-size:20px;line-height:1.2}
+  nav#tabs .lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  nav#tabs button.on{background:transparent;color:var(--ink);font-weight:700}
+  nav#tabs button.on .ic{transform:scale(1.12)}
+  nav#tabs button.add .ic{background:var(--in);color:#fff;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;margin-top:-18px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+  .card{padding:14px;border-radius:12px;margin-bottom:12px}
+  .card h2{font-size:12.5px}
+  .kpis{gap:8px;margin-bottom:12px}
+  .kpi{padding:10px 12px}
+  .kpi .v{font-size:17px}
+  .total b{font-size:21px}
+  .bars .row{grid-template-columns:96px 1fr 88px;gap:8px;font-size:13px}
+  .bars .amt{font-size:12px}
+  .bars .amt .small{display:none}
+  input.big{font-size:22px}
+  .btn{padding:14px 16px}
+  .chip{padding:8px 12px;font-size:14px}
+  table{font-size:13px} th,td{padding:7px 4px}
+  .mov .a{font-size:13px}
+  .edit>div:last-child{grid-template-columns:1fr 1fr!important}
+  .edit>div:last-child input[type=date]{grid-column:1/-1}
+  .acc .cnt input{min-width:0}
+  .toast{bottom:calc(90px + env(safe-area-inset-bottom));max-width:90vw;text-align:center}
+  .login{margin-top:6vh}
+}
+@media(display-mode:standalone){.wrap{padding-top:max(16px,env(safe-area-inset-top))}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
 .card h2{font-size:14px;margin:0 0 12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
@@ -82,6 +126,20 @@ input.big{font-family:"JetBrains Mono",monospace;font-size:24px;font-weight:600}
 .acc .cnt{grid-column:1/-1;display:flex;gap:8px;margin-top:4px}.acc .cnt input{flex:1}.acc .cnt .btn{width:auto;margin:0;padding:10px 14px}
 .total{display:flex;justify-content:space-between;align-items:baseline;background:var(--in-soft);border-radius:12px;padding:12px 14px;margin-bottom:6px}
 .total b{font-family:"JetBrains Mono",monospace;font-size:24px}
+.total{gap:10px;flex-wrap:wrap}
+.inst{display:flex;align-items:center;gap:12px;background:var(--acc-soft);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px;cursor:pointer}
+.inst b{display:block}.inst .x{margin-left:auto}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.modal .sheet{background:var(--card);color:var(--ink);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}
+@media(min-width:641px){.modal{align-items:center}.modal .sheet{border-radius:18px}}
+.osTabs{display:flex;gap:6px;margin:12px 0}
+.osTabs button{flex:1;border:1px solid var(--line);background:var(--bg);color:var(--muted);padding:9px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer}
+.osTabs button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.steps{margin:0;padding-left:0;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.steps li:last-child{border-bottom:0}
+.steps li::before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;background:var(--in);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px}
+.kbd{display:inline-block;border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:0 6px;font-weight:600}
 .login{max-width:380px;margin:10vh auto 0}
 .login h1{font-size:28px;margin-bottom:4px}
 .quick{display:flex;gap:8px;align-items:stretch}
@@ -105,6 +163,7 @@ input.big{font-family:"JetBrains Mono",monospace;font-size:24px;font-weight:600}
     <button class="btn sec" id="lUp" style="width:100%;margin-top:10px;padding:12px">Crear cuenta nueva</button>
     <div class="err" id="lErr"></div>
     <button class="x" id="lForgot" style="font-size:13px;text-decoration:underline;padding:0">¿Olvidaste tu contraseña?</button>
+    <button class="x" id="instOpen3" style="font-size:13px;text-decoration:underline;padding:0;display:block;margin-top:8px">📲 Cómo instalarla en el celu</button>
   </div>
   <div class="card hide" id="lReset">
     <h2>Nueva contraseña</h2>
@@ -120,16 +179,17 @@ input.big{font-family:"JetBrains Mono",monospace;font-size:24px;font-weight:600}
     <div style="display:flex;align-items:center;gap:10px"><h1>💸 Mis Cuentas</h1><button class="btn sec" id="logoutTop" title="Cerrar sesión" style="padding:6px 10px;font-size:12px">Salir</button></div>
     <div class="month"><button id="prevM" aria-label="Mes anterior">‹</button><span id="mLabel"></span><button id="nextM" aria-label="Mes siguiente">›</button></div>
   </header>
-  <nav>
-    <button data-tab="resumen" class="on">Resumen</button>
-    <button data-tab="cargar">+ Cargar</button>
-    <button data-tab="movs">Movimientos</button>
-    <button data-tab="achicar">Dónde achicar</button>
-    <button data-tab="deudas">Deudas</button>
-    <button data-tab="meta">Meta</button>
+  <nav id="tabs">
+    <button data-tab="resumen" class="on"><span class="ic">📊</span><span class="lb">Resumen</span></button>
+    <button data-tab="movs"><span class="ic">📋</span><span class="lb">Movs</span></button>
+    <button data-tab="cargar" class="add"><span class="ic">＋</span><span class="lb">Cargar</span></button>
+    <button data-tab="deudas"><span class="ic">🤝</span><span class="lb">Deudas</span></button>
+    <button data-tab="achicar"><span class="ic">✂️</span><span class="lb">Achicar</span></button>
+    <button data-tab="meta"><span class="ic">🎯</span><span class="lb">Meta</span></button>
   </nav>
 
   <section id="t-resumen">
+    <div class="inst hide" id="instBanner"><span style="font-size:26px">📲</span><div><b>Instalá la app en tu celu</b><span class="small">Queda con ícono en el inicio, como cualquier app.</span></div><button class="x" id="instClose" aria-label="Cerrar">✕</button></div>
     <div class="card"><h2>💰 Mis cuentas</h2>
       <div class="total"><span>Disponible para gastar</span><b id="accTotal">$0</b></div>
       <p class="small" id="accDebt" style="margin:0 0 6px"></p>
@@ -214,8 +274,39 @@ input.big{font-family:"JetBrains Mono",monospace;font-size:24px;font-weight:600}
       <button class="btn" id="gSave">Guardar meta</button>
     </div>
     <div class="card" id="gProg"></div>
+    <div class="card"><div class="flexb"><div><b>📲 Instalar en el celu</b><div class="small">Cómo agregarla al inicio en iPhone o Android.</div></div><button class="btn sec" id="instOpen2">Ver cómo</button></div></div>
     <div class="card"><div class="flexb"><span class="small" id="who"></span><button class="btn sec" id="logout">Cerrar sesión</button></div></div>
   </section>
+</div>
+<div class="modal hide" id="instModal" role="dialog" aria-modal="true" aria-labelledby="instTitle">
+  <div class="sheet">
+    <div class="flexb"><h2 id="instTitle" style="margin:0;font-size:19px">📲 Instalar Mis Cuentas</h2><button class="x" id="instX" aria-label="Cerrar" style="font-size:20px">✕</button></div>
+    <p class="small" style="margin:6px 0 0;font-size:14px">Se agrega al inicio del celu con su ícono y se abre a pantalla completa, como cualquier app. No ocupa espacio ni hay que bajarla de ninguna tienda.</p>
+    <div class="osTabs"><button data-os="ios">🍎 iPhone</button><button data-os="android">🤖 Android</button></div>
+    <div id="osIos">
+      <p class="small" style="margin:0 0 4px">Desde <b>Safari</b> (también funciona en Chrome con iOS 16.4 o más nuevo):</p>
+      <ol class="steps">
+        <li><span>Abrí <b>mis-cuentas-eta.vercel.app</b> en Safari.</span></li>
+        <li><span>Tocá el botón <b>Compartir</b> <span class="kbd">⬆️</span> (el cuadradito con la flecha para arriba). En iOS nuevo puede estar dentro del menú <span class="kbd">•••</span>.</span></li>
+        <li><span>Bajá y tocá <b>"Agregar a inicio"</b> <span class="kbd">➕</span>.</span></li>
+        <li><span>Dejá el nombre <b>Mis Cuentas</b> y tocá <b>Agregar</b>.</span></li>
+        <li><span>¡Listo! Buscá el ícono 💲 verde en tu pantalla de inicio.</span></li>
+      </ol>
+    </div>
+    <div id="osAndroid" class="hide">
+      <button class="btn hide" id="instNative" style="margin:0 0 10px">⬇️ Instalar ahora</button>
+      <p class="small" style="margin:0 0 4px">Desde <b>Chrome</b>:</p>
+      <ol class="steps">
+        <li><span>Abrí <b>mis-cuentas-eta.vercel.app</b> en Chrome.</span></li>
+        <li><span>Tocá el menú <span class="kbd">⋮</span> (los tres puntitos arriba a la derecha).</span></li>
+        <li><span>Tocá <b>"Instalar app"</b> o <b>"Agregar a la pantalla principal"</b>.</span></li>
+        <li><span>Confirmá con <b>Instalar</b>.</span></li>
+        <li><span>¡Listo! El ícono 💲 aparece en tu inicio y en el cajón de apps.</span></li>
+      </ol>
+      <p class="small">¿Usás Samsung Internet? Menú <span class="kbd">≡</span> → <b>Agregar página a</b> → <b>Pantalla de inicio</b>.</p>
+    </div>
+    <button class="btn" id="instOk">Entendido</button>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -419,9 +510,9 @@ document.addEventListener("click",async e=>{const u=e.target.closest("[data-undo
 $("gSave").onclick=async()=>{const g={user_id:user.id,meta_nombre:$("gName").value.trim().slice(0,60),meta_total:parseNum($("gTotal").value)||0,meta_mensual:parseNum($("gMes").value)||0};
   const {error}=await sb.from("perfil").upsert(g);if(error)return fail(error);goal={nombre:g.meta_nombre,total:g.meta_total,mensual:g.meta_mensual};toast("Meta guardada ✓");renderMeta();};
 
-document.querySelector("nav").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(!b)return;
-  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
-  document.querySelectorAll("#vApp section").forEach(s=>s.classList.toggle("hide",s.id!=="t-"+b.dataset.tab));});
+document.querySelector("#tabs").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(!b)return;
+  document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
+  document.querySelectorAll("#vApp section").forEach(s=>s.classList.toggle("hide",s.id!=="t-"+b.dataset.tab));window.scrollTo({top:0});});
 $("prevM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);renderAll();};
 $("nextM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);renderAll();};
 
@@ -471,6 +562,24 @@ if(SR&&!isIOS){const mic=$("qMic");mic.classList.remove("hide");let rec=null,bas
       mic.classList.add("hide");
       toast(ev.error==="not-allowed"?"Sin permiso de micrófono: usá el micrófono del teclado":"Este navegador no permite dictar (pasa en Brave). Usá Chrome o el micrófono del teclado.");};
     try{rec.start();mic.classList.add("rec");mic.textContent="⏹";}catch(_){rec=null;}};}
+
+// ---------- instalar en el celu ----------
+const standalone=!!window.matchMedia?.("(display-mode: standalone)")?.matches||navigator.standalone===true;
+const ls={get:k=>{try{return localStorage.getItem(k)}catch(_){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(_){}}};
+let deferredPrompt=null;
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("instNative").classList.remove("hide");});
+addEventListener("appinstalled",()=>{$("instBanner").classList.add("hide");$("instModal").classList.add("hide");toast("App instalada ✓");});
+function setOS(os){document.querySelectorAll(".osTabs button").forEach(b=>b.classList.toggle("on",b.dataset.os===os));$("osIos").classList.toggle("hide",os!=="ios");$("osAndroid").classList.toggle("hide",os!=="android");}
+function openInst(){const ua=navigator.userAgent;setOS(/android/i.test(ua)?"android":/iPhone|iPad|iPod/.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1)?"ios":"android");$("instModal").classList.remove("hide");}
+const closeInst=()=>$("instModal").classList.add("hide");
+document.querySelector(".osTabs").addEventListener("click",e=>{const b=e.target.closest("[data-os]");if(b)setOS(b.dataset.os);});
+$("instBanner").addEventListener("click",e=>{if(e.target.closest("#instClose")){$("instBanner").classList.add("hide");ls.set("instHide","1");return;}openInst();});
+$("instOpen2").onclick=openInst;$("instOpen3").onclick=openInst;$("instX").onclick=closeInst;$("instOk").onclick=closeInst;
+$("instModal").addEventListener("click",e=>{if(e.target.id==="instModal")closeInst();});
+addEventListener("keydown",e=>{if(e.key==="Escape")closeInst();});
+$("instNative").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice.catch(()=>{});deferredPrompt=null;$("instNative").classList.add("hide");};
+const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||navigator.maxTouchPoints>1;
+if(!standalone&&isMobile&&!ls.get("instHide"))$("instBanner").classList.remove("hide");
 
 // ---------- login ----------
 const authErr=m=>({"Invalid login credentials":"Mail o contraseña incorrectos.","User already registered":"Ese mail ya tiene cuenta: tocá Entrar."}[m]||m);
