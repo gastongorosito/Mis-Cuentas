@@ -94,17 +94,24 @@ input.big{font-family:"JetBrains Mono",monospace;font-size:24px;font-weight:600}
   <p class="small" style="font-size:14px">Controlá en qué se te va la plata: efectivo, banco, billetera virtual, tarjeta y deudas.</p>
   <div class="card" style="margin-top:18px">
     <label for="lEmail">Mail</label><input id="lEmail" type="email" autocomplete="email" placeholder="tu@mail.com">
-    <label for="lPass">Contraseña</label><input id="lPass" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres">
+    <label for="lPass">Contraseña</label><input id="lPass" type="password" autocomplete="current-password" placeholder="Mínimo 8 caracteres">
     <button class="btn" id="lIn">Entrar</button>
     <button class="btn sec" id="lUp" style="width:100%;margin-top:10px;padding:12px">Crear cuenta nueva</button>
     <div class="err" id="lErr"></div>
+    <button class="x" id="lForgot" style="font-size:13px;text-decoration:underline;padding:0">¿Olvidaste tu contraseña?</button>
+  </div>
+  <div class="card hide" id="lReset">
+    <h2>Nueva contraseña</h2>
+    <input id="lNew" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres">
+    <button class="btn" id="lNewOk">Guardar contraseña</button>
+    <div class="err" id="lNewErr"></div>
   </div>
 </div>
 
 <!-- APP -->
 <div class="wrap hide" id="vApp">
   <header>
-    <h1>💸 Mis Cuentas</h1>
+    <div style="display:flex;align-items:center;gap:10px"><h1>💸 Mis Cuentas</h1><button class="btn sec" id="logoutTop" title="Cerrar sesión" style="padding:6px 10px;font-size:12px">Salir</button></div>
     <div class="month"><button id="prevM" aria-label="Mes anterior">‹</button><span id="mLabel"></span><button id="nextM" aria-label="Mes siguiente">›</button></div>
   </header>
   <nav>
@@ -402,16 +409,28 @@ $("nextM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);rende
 // ---------- login ----------
 const authErr=m=>({"Invalid login credentials":"Mail o contraseña incorrectos.","User already registered":"Ese mail ya tiene cuenta: tocá Entrar."}[m]||m);
 async function doAuth(signup){const email=$("lEmail").value.trim(),password=$("lPass").value;$("lErr").textContent="";
-  if(!email||password.length<6){$("lErr").textContent="Poné tu mail y una contraseña de al menos 6 caracteres.";return;}
+  if(!email||!password){$("lErr").textContent="Poné tu mail y tu contraseña.";return;}
+  if(signup&&password.length<8){$("lErr").textContent="La contraseña tiene que tener al menos 8 caracteres.";return;}
   $("lIn").disabled=$("lUp").disabled=true;
   const {error}=signup?await sb.auth.signUp({email,password}):await sb.auth.signInWithPassword({email,password});
   $("lIn").disabled=$("lUp").disabled=false;if(error)$("lErr").textContent=authErr(error.message);}
+$("lForgot").onclick=async()=>{const email=$("lEmail").value.trim();if(!email){$("lErr").textContent="Escribí tu mail arriba y tocá de nuevo.";return;}
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  $("lErr").style.color=error?"":"var(--in)";$("lErr").textContent=error?"No se pudo enviar. Probá en un rato.":"Te mandamos un mail con un link para cambiar la contraseña.";};
+$("lNewOk").onclick=async()=>{const p=$("lNew").value;if(p.length<8){$("lNewErr").textContent="Mínimo 8 caracteres.";return;}
+  const {error}=await sb.auth.updateUser({password:p});if(error){$("lNewErr").textContent="No se pudo cambiar. Pedí otro link.";return;}
+  $("lReset").classList.add("hide");$("vLogin").classList.add("hide");$("vApp").classList.remove("hide");toast("Contraseña cambiada ✓");};
 $("lIn").onclick=()=>doAuth(false);$("lUp").onclick=()=>doAuth(true);
 $("lPass").addEventListener("keydown",e=>{if(e.key==="Enter")doAuth(false);});
-$("logout").onclick=async()=>{await sb.auth.signOut();};
-sb.auth.onAuthStateChange((_ev,session)=>{const u=session?.user||null;if(u?.id===user?.id)return;user=u;
+$("logout").onclick=$("logoutTop").onclick=async()=>{await sb.auth.signOut();toast("Sesión cerrada");};
+let recovering=false;
+sb.auth.onAuthStateChange((ev,session)=>{
+  if(ev==="PASSWORD_RECOVERY"){recovering=true;user=session?.user||null;$("vApp").classList.add("hide");$("vLogin").classList.remove("hide");$("lReset").classList.remove("hide");if(user)loadAll();return;}
+  if(recovering&&ev!=="SIGNED_OUT")return;
+  const u=session?.user||null;if(u?.id===user?.id)return;user=u;
   $("vLogin").classList.toggle("hide",!!user);$("vApp").classList.toggle("hide",!user);
-  if(user){$("who").textContent="Conectado como "+user.email;loadAll();}else{movs=[];deudas=[];goal=null;}});
+  if(user){$("who").textContent="Conectado como "+user.email;loadAll();}else{movs=[];deudas=[];goal=null;}
+  recovering=false;});
 
 drawCats();drawDCat();
 navigator.serviceWorker?.register("sw.js").catch(()=>{});
