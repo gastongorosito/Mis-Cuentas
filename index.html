@@ -460,12 +460,16 @@ $("qPrev").addEventListener("change",e=>{const f=e.target.dataset.f,box=e.target
 $("qPrev").addEventListener("input",e=>{if(e.target.dataset.f==="desc"){const b=e.target.closest(".edit");if(b&&pending[+b.dataset.i])pending[+b.dataset.i].desc=e.target.value.slice(0,60);}});
 // dictado (Chrome / Android)
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-if(SR){const mic=$("qMic");mic.classList.remove("hide");let rec=null,base="";
+const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+if(isIOS)$("qText").placeholder="Tocá acá y usá el 🎙️ del teclado: “gasté 3500 en el súper y cobré 20 lucas”";
+if(SR&&!isIOS){const mic=$("qMic");mic.classList.remove("hide");let rec=null,base="";
   mic.onclick=()=>{if(rec){rec.stop();return;}
     rec=new SR();rec.lang="es-AR";rec.interimResults=true;rec.continuous=true;base=$("qText").value.trim();
     rec.onresult=ev=>{let fin="",tmp="";for(let i=ev.resultIndex;i<ev.results.length;i++){const t=ev.results[i][0].transcript;if(ev.results[i].isFinal)fin+=t;else tmp+=t;}if(fin)base=(base+" "+fin).trim();$("qText").value=(base+" "+tmp).trim();};
     rec.onend=()=>{rec=null;mic.classList.remove("rec");mic.textContent="🎙️";if($("qText").value.trim())$("qGo").click();};
-    rec.onerror=ev=>{if(ev.error==="not-allowed"){mic.classList.add("hide");toast("Sin permiso de micrófono: usá el del teclado");}};
+    rec.onerror=ev=>{if(ev.error==="no-speech"||ev.error==="aborted")return;
+      mic.classList.add("hide");
+      toast(ev.error==="not-allowed"?"Sin permiso de micrófono: usá el micrófono del teclado":"Este navegador no permite dictar (pasa en Brave). Usá Chrome o el micrófono del teclado.");};
     try{rec.start();mic.classList.add("rec");mic.textContent="⏹";}catch(_){rec=null;}};}
 
 // ---------- login ----------
