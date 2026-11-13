@@ -222,6 +222,14 @@ input.big{font-family:"JetBrains Mono",monospace;font-size:24px;font-weight:600}
       <p class="small" style="margin:8px 0 0">Si no decís el medio, se toma como efectivo. Revisá antes de guardar: podés corregir todo.</p>
     </div>
     <div class="card">
+      <h2>↔️ Pasar entre cuentas</h2>
+      <p class="small" style="margin:-6px 0 6px">Cambios, depósitos, extracciones o cargar la billetera. No cuenta como gasto ni ingreso.</p>
+      <div class="grid2"><div><label for="xFrom">Sale de</label><select id="xFrom"></select></div><div><label for="xTo">Entra en</label><select id="xTo"></select></div></div>
+      <div class="grid2"><div><label for="xMonto">Monto ($)</label><input id="xMonto" inputmode="decimal" placeholder="0"></div><div><label for="xFecha">Fecha</label><input id="xFecha" type="date"></div></div>
+      <label for="xDesc">Detalle (opcional)</label><input id="xDesc" placeholder="Ej: cambié con Juan, extracción cajero…">
+      <button class="btn" id="xSave">Pasar</button>
+    </div>
+    <div class="card">
       <h2>✍️ Carga manual</h2>
       <div class="seg"><button id="tOut" class="on out">Gasto</button><button id="tIn" class="in">Ingreso</button></div>
       <label for="fMonto">Monto ($)</label>
@@ -234,6 +242,7 @@ input.big{font-family:"JetBrains Mono",monospace;font-size:24px;font-weight:600}
       <label for="fDesc">Detalle (opcional)</label>
       <input id="fDesc" placeholder="Ej: súper, nafta, cliente…" autocomplete="off">
       <label class="check" id="fFijoWrap"><input type="checkbox" id="fFijo"> Es un gasto fijo (se repite todos los meses)</label>
+      <label class="check"><input type="checkbox" id="fNo"> No cuenta como gasto/ingreso (reintegro, préstamo, pagué por otro)</label>
       <button class="btn" id="fSave">Guardar</button>
       <p class="small" style="margin:10px 0 0">💡 Tip: tocá el micrófono del teclado del celu para dictar el detalle.</p>
     </div>
@@ -277,6 +286,20 @@ input.big{font-family:"JetBrains Mono",monospace;font-size:24px;font-weight:600}
     <div class="card"><div class="flexb"><div><b>📲 Instalar en el celu</b><div class="small">Cómo agregarla al inicio en iPhone o Android.</div></div><button class="btn sec" id="instOpen2">Ver cómo</button></div></div>
     <div class="card"><div class="flexb"><span class="small" id="who"></span><button class="btn sec" id="logout">Cerrar sesión</button></div></div>
   </section>
+</div>
+<div class="modal hide" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+  <div class="sheet">
+    <div class="flexb"><h2 id="editTitle" style="margin:0;font-size:19px">✏️ Editar movimiento</h2><button class="x" id="eX" aria-label="Cerrar" style="font-size:20px">✕</button></div>
+    <div class="seg" style="margin-top:14px"><button id="eOut" class="out">Gasto</button><button id="eIn" class="in">Ingreso</button></div>
+    <label for="eMonto">Monto ($)</label><input id="eMonto" class="big" inputmode="decimal">
+    <label for="eDesc">Detalle</label><input id="eDesc">
+    <div class="grid2"><div><label for="eCat">Categoría</label><select id="eCat"></select></div><div><label for="eMedio">Medio</label><select id="eMedio"></select></div></div>
+    <label for="eFecha">Fecha</label><input id="eFecha" type="date">
+    <label class="check"><input type="checkbox" id="eFijo"> Gasto fijo (se repite todos los meses)</label>
+    <label class="check" style="align-items:flex-start"><input type="checkbox" id="eNo" style="margin-top:3px"> <span><b>No cuenta</b> como gasto ni ingreso<br><span class="small">Para reintegros, préstamos, plata que pagaste por otro o pasajes entre tus cuentas. Igual mueve el saldo de la cuenta.</span></span></label>
+    <button class="btn" id="eSave">Guardar cambios</button>
+    <button class="btn sec" id="eDel" style="width:100%;margin-top:10px;padding:12px;color:var(--out)">Borrar movimiento</button>
+  </div>
 </div>
 <div class="modal hide" id="instModal" role="dialog" aria-modal="true" aria-labelledby="instTitle">
   <div class="sheet">
@@ -404,7 +427,7 @@ function renderMovs(){
   const f=$("mFilter").value;let list=monthMovs(cur).slice().sort((a,b)=>(b.fecha||"").localeCompare(a.fecha||""));
   if(f!=="all")list=list.filter(m=>m.tipo===f);
   if(!list.length){$("movList").innerHTML='<div class="empty">Nada por acá. Cargá algo en "+ Cargar".</div>';return;}
-  $("movList").innerHTML=list.map(m=>`<div class="mov"><span class="dot" style="background:${m.tipo==="in"?"var(--in)":"var(--out)"}"></span><div class="info"><div class="t">${esc(m.desc||m.cat)}</div><div class="s">${esc(m.cat)} · ${m.fecha.slice(8,10)}/${m.fecha.slice(5,7)} · ${esc(m.medio)}${m.fijo?'<span class="tag">fijo</span>':""}${m.reintegro?'<span class="tag">no cuenta</span>':""}</div></div><div class="a ${m.reintegro?"":m.tipo==="in"?"pos":"neg"}">${m.tipo==="in"?"+":"-"}${fmt(m.monto)}</div><button class="x" data-del="${m.id}" aria-label="Borrar">✕</button></div>`).join("");
+  $("movList").innerHTML=list.map(m=>`<div class="mov" data-edit="${m.id}" style="cursor:pointer"><span class="dot" style="background:${m.tipo==="in"?"var(--in)":"var(--out)"}"></span><div class="info"><div class="t">${esc(m.desc||m.cat)}</div><div class="s">${esc(m.cat)} · ${m.fecha.slice(8,10)}/${m.fecha.slice(5,7)} · ${esc(m.medio)}${m.fijo?'<span class="tag">fijo</span>':""}${m.reintegro?'<span class="tag">no cuenta</span>':""}</div></div><div class="a ${m.reintegro?"":m.tipo==="in"?"pos":"neg"}">${m.tipo==="in"?"+":"-"}${fmt(m.monto)}</div><button class="x" data-del="${m.id}" aria-label="Borrar">✕</button></div>`).join("");
 }
 function renderRules(){
   const s=sums(monthMovs(cur)),out=[];
@@ -461,8 +484,8 @@ $("tIn").onclick=()=>{ftype="in";$("tIn").className="on in";$("tOut").className=
 $("fFecha").value=today();
 $("fSave").onclick=async()=>{const monto=parseNum($("fMonto").value);if(!(monto>0)){toast("Poné un monto válido");return;}
   $("fSave").disabled=true;
-  try{await addMov({tipo:ftype,monto,cat:fcat,fecha:$("fFecha").value||today(),medio:$("fMedio").value,desc:$("fDesc").value.trim().slice(0,120),fijo:ftype==="out"&&$("fFijo").checked});
-    toast("Guardado ✓");$("fMonto").value="";$("fDesc").value="";$("fFijo").checked=false;renderAll();$("fMonto").focus();}catch(e){fail(e);}finally{$("fSave").disabled=false;}};
+  try{await addMov({tipo:ftype,monto,cat:fcat,fecha:$("fFecha").value||today(),medio:$("fMedio").value,desc:$("fDesc").value.trim().slice(0,120),fijo:ftype==="out"&&$("fFijo").checked,reintegro:$("fNo").checked});
+    toast("Guardado ✓");$("fMonto").value="";$("fDesc").value="";$("fFijo").checked=false;$("fNo").checked=false;renderAll();$("fMonto").focus();}catch(e){fail(e);}finally{$("fSave").disabled=false;}};
 $("fMonto").addEventListener("keydown",e=>{if(e.key==="Enter")$("fSave").click();});
 $("mFilter").onchange=renderMovs;
 
@@ -562,6 +585,41 @@ if(SR&&!isIOS){const mic=$("qMic");mic.classList.remove("hide");let rec=null,bas
       mic.classList.add("hide");
       toast(ev.error==="not-allowed"?"Sin permiso de micrófono: usá el micrófono del teclado":"Este navegador no permite dictar (pasa en Brave). Usá Chrome o el micrófono del teclado.");};
     try{rec.start();mic.classList.add("rec");mic.textContent="⏹";}catch(_){rec=null;}};}
+
+// ---------- pasar entre cuentas ----------
+$("xFrom").innerHTML=ACCS.map(a=>`<option>${a.k}</option>`).join("");
+$("xTo").innerHTML=ACCS.map((a,i)=>`<option${i===1?" selected":""}>${a.k}</option>`).join("");
+$("xFecha").value=today();
+$("xSave").onclick=async()=>{const from=$("xFrom").value,to=$("xTo").value,monto=parseNum($("xMonto").value);
+  if(from===to){toast("Elegí dos cuentas distintas");return;}if(!(monto>0)){toast("Poné un monto válido");return;}
+  const fecha=$("xFecha").value||today(),det=$("xDesc").value.trim().slice(0,80);
+  $("xSave").disabled=true;
+  try{await addMov({tipo:"out",monto,cat:"Otros",fecha,medio:from,desc:`↔️ A ${to}${det?" – "+det:""}`,reintegro:true});
+    await addMov({tipo:"in",monto,cat:"Otros",fecha,medio:to,desc:`↔️ Desde ${from}${det?" – "+det:""}`,reintegro:true});
+    toast(`Pasaste ${fmt(monto)} de ${from} a ${to} ✓`);$("xMonto").value="";$("xDesc").value="";renderAll();}
+  catch(e){fail(e);}finally{$("xSave").disabled=false;}};
+
+// ---------- editar movimiento ----------
+let editId=null,eTipo="out";
+const eCats=()=>eTipo==="in"?CATS_IN:CATS_OUT;
+function eDrawTipo(cat){$("eOut").className=eTipo==="out"?"on out":"out";$("eIn").className=eTipo==="in"?"on in":"in";
+  const l=eCats();$("eCat").innerHTML=l.map(c=>`<option${c===cat?" selected":""}>${esc(c)}</option>`).join("");if(!l.includes(cat))$("eCat").value="Otros";}
+function openEdit(id){const m=movs.find(x=>x.id===id);if(!m)return;editId=id;eTipo=m.tipo;eDrawTipo(m.cat);
+  const meds=[...MEDIOS,"Canje"];if(!meds.includes(m.medio))meds.push(m.medio);
+  $("eMedio").innerHTML=meds.map(x=>`<option${x===m.medio?" selected":""}>${esc(x)}</option>`).join("");
+  $("eMonto").value=m.monto;$("eDesc").value=m.desc;$("eFecha").value=m.fecha;$("eFijo").checked=!!m.fijo;$("eNo").checked=!!m.reintegro;
+  $("eDel").dataset.confirm="";$("eDel").textContent="Borrar movimiento";$("editModal").classList.remove("hide");}
+const closeEdit=()=>{$("editModal").classList.add("hide");editId=null;};
+$("eOut").onclick=()=>{eTipo="out";eDrawTipo($("eCat").value);};$("eIn").onclick=()=>{eTipo="in";eDrawTipo($("eCat").value);};
+$("eX").onclick=closeEdit;$("editModal").addEventListener("click",e=>{if(e.target.id==="editModal")closeEdit();});
+$("movList").addEventListener("click",e=>{if(e.target.closest("[data-del]"))return;const r=e.target.closest("[data-edit]");if(r)openEdit(r.dataset.edit);});
+$("eSave").onclick=async()=>{const monto=parseNum($("eMonto").value);if(!(monto>0)){toast("Monto inválido");return;}
+  const patch={tipo:eTipo,monto,cat:$("eCat").value,medio:$("eMedio").value,descr:$("eDesc").value.trim().slice(0,120),fecha:$("eFecha").value||today(),fijo:eTipo==="out"&&$("eFijo").checked,reintegro:$("eNo").checked};
+  $("eSave").disabled=true;
+  try{const {data,error}=await sb.from("movs").update(patch).eq("id",editId).select().single();if(error)throw error;
+    const i=movs.findIndex(x=>x.id===editId);movs[i]=fromMov(data);toast("Guardado ✓");closeEdit();renderAll();}catch(err){fail(err);}finally{$("eSave").disabled=false;}};
+$("eDel").onclick=async()=>{if(!confirm2($("eDel"),"¿Seguro? Tocá de nuevo para borrar"))return;try{await delMov(editId);toast("Borrado");closeEdit();renderAll();}catch(err){fail(err);}};
+addEventListener("keydown",e=>{if(e.key==="Escape")closeEdit();});
 
 // ---------- instalar en el celu ----------
 const standalone=!!window.matchMedia?.("(display-mode: standalone)")?.matches||navigator.standalone===true;
