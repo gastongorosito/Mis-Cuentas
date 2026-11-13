@@ -127,6 +127,7 @@ input.big{font-family:"JetBrains Mono",monospace;font-size:24px;font-weight:600}
 .total{display:flex;justify-content:space-between;align-items:baseline;background:var(--in-soft);border-radius:12px;padding:12px 14px;margin-bottom:6px}
 .total b{font-family:"JetBrains Mono",monospace;font-size:24px}
 .total{gap:10px;flex-wrap:wrap}
+.hist{margin:8px 0 2px;background:var(--bg);border-radius:10px;padding:2px 10px}.hist .hr{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}.hist .hr:last-child{border-bottom:0}.hist .hr .d{color:var(--muted);min-width:44px}.hist .hr .m{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hist .hr .v{font-family:"JetBrains Mono",monospace;font-weight:600;white-space:nowrap}
 .inst{display:flex;align-items:center;gap:12px;background:var(--acc-soft);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px;cursor:pointer}
 .inst b{display:block}.inst .x{margin-left:auto}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;display:flex;align-items:flex-end;justify-content:center}
@@ -449,6 +450,13 @@ function renderRules(){
   if(!out.length)out.push("Todo en orden por ahora. Seguí cargando para tener mejores comparaciones.");
   $("rules").innerHTML=out.map(x=>`<p style="margin:0 0 10px">${x}</p>`).join("");
 }
+function histHtml(d){
+  if(!d.pagos.length)return "";
+  const rows=d.pagos.map((p,i)=>({p,i})).sort((a,b)=>(b.p.fecha||"").localeCompare(a.p.fecha||""));
+  return `<div class="small" style="margin-top:8px;font-weight:600">${d.tipo==="debo"?"Pagos":"Cobros"} (${d.pagos.length})</div><div class="hist">${rows.map(({p,i})=>{const m=p.movId?movs.find(x=>x.id===p.movId):null;
+    const medio=m?m.medio:(p.medio||"");const extra=p.tc?` · a $${Number(p.tc).toLocaleString("es-AR")}`:"";
+    return `<div class="hr"><span class="d">${(p.fecha||"").slice(8,10)}/${(p.fecha||"").slice(5,7)}${(p.fecha||"").slice(0,4)!==today().slice(0,4)?"/"+(p.fecha||"").slice(2,4):""}</span><span class="m">${esc(medio||"—")}${extra}</span><span class="v">${money(p.monto,d.moneda)}</span><button class="x" data-rmpago="${d.id}" data-i="${i}" aria-label="Borrar pago" style="font-size:14px">✕</button></div>`;}).join("")}</div>`;
+}
 function renderDeudas(){
   const pend=deudas.filter(d=>!d.pagada),done=deudas.filter(d=>d.pagada);
   const tot=(t,c)=>pend.filter(d=>d.tipo===t&&d.moneda===c).reduce((a,d)=>a+saldoD(d),0);
@@ -459,8 +467,8 @@ function renderDeudas(){
     const prog=d.pagos.length?`<div class="goal-track" style="height:8px;margin:6px 0 2px"><div class="goal-fill" style="width:${pct.toFixed(1)}%"></div></div><div class="s">Pagaste ${money(d.monto-sal,c)} de ${money(d.monto,c)} (${Math.round(pct)}%)</div>`:"";
     const def=d.cuotaMin&&d.cuotaMin<sal?(Math.max(0,d.cuotaMin-pm)||d.cuotaMin):sal;
     return `<div class="mov" style="flex-wrap:wrap"><span class="dot" style="background:${d.tipo==="debo"?"var(--out)":"var(--in)"}"></span><div class="info"><div class="t">${d.tipo==="debo"?"Le debo a ":"Me debe "}${esc(d.quien)}</div><div class="s">${esc(d.desc)}${d.cat?" · "+esc(d.cat):""}</div></div><div class="a ${d.tipo==="debo"?"neg":"pos"}">${money(sal,c)}</div>
-    <div style="width:100%">${prog}${cuota}${last?`<button class="btn sec" data-undo="${d.id}" style="margin-top:6px;padding:5px 10px;font-size:12px">↩ Deshacer último pago (${money(last.monto,c)} del ${last.fecha.slice(8,10)}/${last.fecha.slice(5,7)})</button>`:""}</div>
-    <div style="width:100%;display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><input data-amt="${d.id}" inputmode="decimal" value="${Math.round(def)}" style="flex:1;min-width:90px;padding:7px">${c==="USD"?`<input data-tc="${d.id}" inputmode="decimal" placeholder="$ por USD" style="width:110px;padding:7px">`:""}<select data-medio="${d.id}" style="flex:1;min-width:110px;padding:7px">${[...MEDIOS,"Canje"].map(m=>`<option>${m}</option>`).join("")}</select><button class="btn sec" data-pay="${d.id}">${d.tipo==="debo"?"Registrar pago":"Registrar cobro"}</button><button class="x" data-ddel="${d.id}" aria-label="Borrar">✕</button></div></div>`;}).join(""):'<div class="empty">Sin deudas pendientes 🙌</div>';
+    <div style="width:100%">${prog}${cuota}${histHtml(d)}</div>
+    <div style="width:100%;display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><input data-amt="${d.id}" inputmode="decimal" value="${Math.round(def)}" style="flex:1;min-width:90px;padding:7px">${c==="USD"?`<input data-tc="${d.id}" inputmode="decimal" placeholder="$ por USD" style="width:110px;padding:7px">`:""}<select data-medio="${d.id}" style="flex:1;min-width:110px;padding:7px">${[...MEDIOS,"Canje"].map(m=>`<option>${m}</option>`).join("")}</select><button class="btn sec" data-pay="${d.id}">${d.tipo==="debo"?"Registrar pago":"Registrar cobro"}</button></div><div style="width:100%;text-align:right;margin-top:6px"><button class="x" data-ddel="${d.id}" style="font-size:12px;color:var(--muted)">🗑 Borrar deuda</button></div></div>`;}).join(""):'<div class="empty">Sin deudas pendientes 🙌</div>';
   $("dDoneCard").classList.toggle("hide",!done.length);
   $("dDone").innerHTML=done.slice(-10).reverse().map(d=>`<div class="mov"><div class="info"><div class="t" style="color:var(--muted)">${d.tipo==="debo"?"Le debía a ":"Me debía "}${esc(d.quien)}</div><div class="s">${esc(d.desc)}</div></div><div class="a" style="color:var(--muted)">${money(d.monto,d.moneda)}</div><button class="btn sec" data-undo="${d.id}" style="padding:5px 10px;font-size:12px">↩ Deshacer</button></div>`).join("");
 }
@@ -526,6 +534,9 @@ $("dList").addEventListener("click",async e=>{
   try{const movId=await addMov({tipo:d.tipo==="debo"?"out":"in",monto:Math.round(pesos*100)/100,cat:d.cat||"Otros",fecha:today(),medio:q("medio").value,desc:(d.tipo==="debo"?"Pago a ":"Cobro de ")+d.quien+(tc?` – USD ${amt} a $${tc}`:"")+(d.desc?" – "+d.desc:""),reintegro:!d.cat});
     const pagos=[...d.pagos,{fecha:today(),monto:amt,movId,...(tc?{tc}:{})}],fin=sal-amt<=0.009;
     await updDeuda(d.id,{pagos,...(fin?{pagada:true,pagada_fecha:today()}:{})});toast(fin?"Saldada ✓":"Pago registrado ✓");renderAll();}catch(err){fail(err);b.disabled=false;}});
+async function removePago(id,idx){const d=deudas.find(x=>x.id===id);if(!d)return;const pagos=[...d.pagos];const [p]=pagos.splice(idx,1);
+  try{if(p&&p.movId){try{await delMov(p.movId);}catch(_){}}await updDeuda(d.id,{pagos,pagada:false,pagada_fecha:null});toast("Pago borrado ✓");renderAll();}catch(err){fail(err);}}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-rmpago]");if(!b)return;if(!confirm2(b,"¿Borrar?"))return;b.disabled=true;removePago(b.dataset.rmpago,+b.dataset.i);});
 document.addEventListener("click",async e=>{const u=e.target.closest("[data-undo]");if(!u||!confirm2(u,"¿Seguro? Tocá de nuevo"))return;
   const d=deudas.find(x=>x.id===u.dataset.undo);if(!d)return;const pagos=[...d.pagos],last=pagos.pop();u.disabled=true;
   try{if(last&&last.movId){try{await delMov(last.movId);}catch(_){}}await updDeuda(d.id,{pagos,pagada:false,pagada_fecha:null});toast("Deshecho ✓");renderAll();}catch(err){fail(err);}});
